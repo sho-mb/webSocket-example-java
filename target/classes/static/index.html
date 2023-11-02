@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div class="container">
+    <div id="messages" class="messages"></div>
+    <div class="input-fields">
+      <p>Type your name</p>
+      <input id="message" />
+      <button id="send">send</button>
+    </div>
+  </div>
+</body>
+<script>
+  const messageWindow = document.getElementById("messages");
+
+const sendButton = document.getElementById("send");
+const messageInput = document.getElementById("message");
+
+const socket = new WebSocket("ws://localhost:8080/test");
+socket.binaryType = "arraybuffer";
+
+socket.onopen = function (event) {
+  addMessageToWindow("connected");
+};
+
+socket.onmessage = function (event) {
+  addMessageToWindow(`got Message: ${event.data}`);
+};
+
+socket.onerror = function (event) {
+  addMessageToWindow(`error! ${event.data}`);
+};
+
+socket.onclose = function (event) {
+  if (event.wasClean) {
+    addMessageToWindow(`connection closed cleanly, code=${event.code} reason=${event.reason}`);
+  } else {
+    addMessageToWindow(`connection died, code=${event.code} reason=${event.reason}`);
+  }
+};
+
+sendButton.onclick = function (event) {
+  sendMessage(messageInput.value);
+  messageInput.value = "";
+};
+
+function sendMessage(message) {
+  socket.send(message);
+  addMessageToWindow("Sent Message: " + message);
+}
+
+function addMessageToWindow(message) {
+  messageWindow.innerHTML += `<div>${message}</div>`
+}
+</script>
+</html>
